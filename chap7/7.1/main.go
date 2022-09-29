@@ -1,40 +1,45 @@
 package main
 
 import (
+	"bufio"
+	"bytes"
 	"fmt"
-	"io"
+	"net"
 )
 
-type ByteCounter int
-
-func (b *ByteCounter) Write(p []byte) (n int, err error) {
-	return len(p), nil
+type LineCounter struct {
+	c int
 }
 
-type NewWriter struct {
-	w io.Writer
-	c int64
-}
-
-func (n1 *NewWriter) Write(p []byte) (n int, err error) {
-	n1.w.Write(p)
-	n1.c += int64(len(p))
-	return len(p), nil
-}
-
-func countingWriter(w io.Writer) (io.Writer, *int64) {
-	nw := NewWriter{
-		w: nil,
-		c: 0,
+func (l *LineCounter) Write(p []byte) (n int, err error) {
+	scanner := bufio.NewScanner(bytes.NewReader(p))
+	scanner.Split(bufio.ScanWords)
+	for scanner.Scan() {
+		l.c++
 	}
-	return &nw, &nw.c
+	return len(p), nil
 }
 
 func main() {
-	var sample ByteCounter
-	r, err := sample.Write([]byte("hello"))
-	if err != nil {
 
+	s := "Hello, World!\nHello, 世界！"
+	var lc LineCounter
+
+	fmt.Fprintf(&lc, s)
+	fmt.Println(lc)
+	fmt.Printf("no of lines %v\n", lc.c)
+	net.Dial("tcp", "localhost:8080")
+
+	fmt.Println(partialPlus(6)(3))
+
+}
+
+func plus(x int, y int) int {
+	return x + y
+}
+
+func partialPlus(x int) func(int) int {
+	return func(y int) int {
+		return plus(x, y)
 	}
-	fmt.Println(r)
 }
